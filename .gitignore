@@ -3,4 +3,5 @@
 
 # Track only these files
 !.gitignore
-!kill_switch.py
+!kill_switch/
+!kill_switch/**
