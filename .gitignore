@@ -4,7 +4,7 @@
 # Track only these files
 !.gitignore
 !README.md
-!reports/
-!reports/*.html
+!docs/
+!docs/**
 !kill_switch/
 !kill_switch/**

@@ -16,7 +16,7 @@ Inference Node ──/tug1/PWM_raw──▶ Kill Switch ──/tug1/PWM──▶
 
 ## Report
 
-[View System Overview Report](https://htmlpreview.github.io/?https://github.com/seungjae99/rl_kill_switch/blob/main/reports/rl_kill_switch_results_overview.html)
+[View System Overview Report](https://seungjae99.github.io/rl_kill_switch/)
 
 ---
 
