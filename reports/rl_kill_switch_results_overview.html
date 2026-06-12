@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RL Kill Switch — System Overview</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      padding: 40px 16px 80px;
+    }
+
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header {
+      border-bottom: 1px solid #2d3148;
+      padding-bottom: 28px;
+      margin-bottom: 36px;
+    }
+
+    .header .tag {
+      display: inline-block;
+      background: #2d3148;
+      color: #8b949e;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+      margin-bottom: 14px;
+    }
+
+    .header h1 {
+      font-size: 30px;
+      font-weight: 700;
+      color: #e6edf3;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #8b949e;
+      max-width: 640px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: #1e2130;
+      border: 1px solid #2d3148;
+      border-radius: 10px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #58a6ff;
+      margin-bottom: 18px;
+    }
+
+    .card p {
+      margin-bottom: 12px;
+    }
+
+    .card p:last-child { margin-bottom: 0; }
+
+    /* ── Pipeline diagram ── */
+    .pipeline {
+      background: #13151f;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      padding: 20px 24px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      color: #8b949e;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .pipeline .hl { color: #e6edf3; }
+    .pipeline .accent { color: #58a6ff; }
+    .pipeline .warn { color: #f0883e; }
+
+    /* ── Trigger table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 6px;
+    }
+
+    thead th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #8b949e;
+      border-bottom: 1px solid #2d3148;
+      padding: 8px 12px;
+    }
+
+    tbody td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #1a1e2e;
+      vertical-align: top;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+
+    .id {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 13px;
+      color: #58a6ff;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-auto  { background: #0d3d2e; color: #3fb950; }
+    .badge-manual { background: #3d1a00; color: #f0883e; }
+
+    /* ── State machine ── */
+    .states {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 16px 0 20px;
+    }
+
+    .state-box {
+      flex: 1;
+      min-width: 180px;
+      background: #13151f;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+
+    .state-box .state-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .state-normal  .state-label { color: #3fb950; }
+    .state-triggered .state-label { color: #f0883e; }
+    .state-armed   .state-label { color: #f85149; }
+
+    .state-box p {
+      font-size: 13px;
+      color: #8b949e;
+      margin: 0;
+    }
+
+    /* ── Tech stack pills ── */
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .pill {
+      background: #2d3148;
+      color: #c9d1d9;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* ── Two-col grid ── */
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 560px) {
+      .grid2 { grid-template-columns: 1fr; }
+      .header h1 { font-size: 22px; }
+    }
+
+    .mini-card {
+      background: #13151f;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .mini-card .label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #58a6ff;
+      margin-bottom: 6px;
+    }
+
+    .mini-card p {
+      font-size: 13px;
+      color: #8b949e;
+      margin: 0;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      background: #2d3148;
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: #c9d1d9;
+    }
+
+    /* ── Topic table ── */
+    .topic-section { margin-bottom: 18px; }
+    .topic-section h3 {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #8b949e;
+      margin-bottom: 8px;
+    }
+
+    /* ── Visual pipeline diagram ── */
+    .vis-pipeline {
+      margin: 20px 0 4px;
+      overflow-x: auto;
+    }
+
+    .vis-main {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      min-width: 560px;
+    }
+
+    .vis-box {
+      flex-shrink: 0;
+      background: #13151f;
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+
+    .vis-box-inference {
+      border: 1px solid #388bfd;
+      min-width: 124px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .vis-box-ks {
+      border: 1px solid #3fb950;
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .vis-box-arduino {
+      border: 1px solid #e3b341;
+      min-width: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .vis-hz-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      background: #1a2d4a;
+      color: #388bfd;
+      border: 1px solid #2a4060;
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    .vis-box-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e6edf3;
+      text-align: center;
+    }
+
+    .vis-box-sub {
+      font-size: 11px;
+      color: #6e7681;
+      text-align: center;
+    }
+
+    /* Arrow connectors */
+    .vis-conn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 82px;
+      padding: 0 2px;
+      gap: 4px;
+    }
+
+    .vis-conn-topic {
+      font-size: 10px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      color: #58a6ff;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .vis-conn-arrow {
+      position: relative;
+      width: 64px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+    }
+
+    .vis-conn-arrow::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 10px;
+      height: 2px;
+      background: linear-gradient(to right, #2d3a55, #388bfd88);
+      border-radius: 1px;
+    }
+
+    .vis-conn-arrow::after {
+      content: '▶';
+      position: absolute;
+      right: 0;
+      color: #388bfd;
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .vis-conn-meta {
+      font-size: 10px;
+      color: #3a4050;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    /* Kill Switch internals */
+    .vis-ks-header {
+      font-size: 12px;
+      font-weight: 700;
+      color: #3fb950;
+      text-align: center;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1a3020;
+    }
+
+    .vis-ks-cases {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+
+    .vis-ks-case {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 10px;
+      border-radius: 5px;
+      font-size: 11px;
+    }
+
+    .vis-ks-case-normal {
+      background: #091a10;
+      border: 1px solid #1a4228;
+    }
+
+    .vis-ks-case-kill {
+      background: #1a0a0a;
+      border: 1px solid #3a1515;
+    }
+
+    .vis-ks-state {
+      font-weight: 700;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 10px;
+      white-space: nowrap;
+      min-width: 80px;
+    }
+
+    .vis-ks-case-normal .vis-ks-state { color: #3fb950; }
+    .vis-ks-case-kill .vis-ks-state   { color: #f85149; }
+
+    .vis-ks-sep { color: #3a4050; font-size: 12px; }
+
+    .vis-ks-action {
+      color: #6e7681;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 11px;
+    }
+
+    .vis-ks-case-normal .vis-ks-action { color: #8b949e; }
+
+    /* Monitored inputs strip */
+    .vis-monitors-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #3a4050;
+      margin-bottom: 6px;
+      margin-top: 4px;
+      padding-top: 8px;
+      border-top: 1px solid #1a1e2e;
+    }
+
+    .vis-monitors {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .vis-monitor {
+      background: #0d1018;
+      border: 1px solid #252a3a;
+      border-radius: 5px;
+      padding: 6px 8px;
+      flex: 1;
+      min-width: 60px;
+    }
+
+    .vis-monitor-src {
+      font-size: 9px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      color: #6e7681;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .vis-monitor-tags {
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap;
+    }
+
+    .vis-tag {
+      background: #1e2540;
+      color: #58a6ff;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid #2d3148;
+      font-size: 12px;
+      color: #484f58;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <span class="tag">ROS2 / Autonomous Vessels / Safety Systems</span>
+    <h1>RL Kill Switch</h1>
+    <p>
+      A ROS2 safety node that guards an autonomous tugboat driven by a reinforcement learning policy.
+      The kill switch sits between the RL inference node and the Arduino motor controller,
+      continuously monitoring six independent failure conditions and overriding all propulsion
+      commands the moment any condition is violated.
+    </p>
+  </div>
+
+  <!-- What it does -->
+  <div class="card">
+    <h2>What It Does</h2>
+    <p>
+      The tugboat's RL policy runs at 10 Hz and publishes raw PWM commands to <code>/tug1/PWM_raw</code>.
+      Under normal conditions the kill switch acts as a transparent relay, forwarding those values
+      unchanged to <code>/tug1/PWM</code> and to the Arduino over serial.
+    </p>
+    <p>
+      When any of six health triggers fires, the node immediately substitutes
+      <code>[0.0, 0.0]</code> — neutral thrust and servo — regardless of what the policy outputs.
+      The Arduino receives the same neutral command over the serial link, bringing the vessel to a stop.
+      The RL policy keeps running, but its commands are suppressed until the system is declared safe again.
+    </p>
+
+    <div class="vis-pipeline">
+      <div class="vis-main">
+
+        <!-- Inference Node -->
+        <div class="vis-box vis-box-inference">
+          <div class="vis-hz-badge">10 Hz</div>
+          <div class="vis-box-title">Inference Node</div>
+          <div class="vis-box-sub">TorchScript JIT</div>
+        </div>
+
+        <!-- → /tug1/PWM_raw → -->
+        <div class="vis-conn">
+          <div class="vis-conn-topic">/tug1/PWM_raw</div>
+          <div class="vis-conn-arrow"></div>
+          <div class="vis-conn-meta">Float64MultiArray</div>
+        </div>
+
+        <!-- Kill Switch Node -->
+        <div class="vis-box vis-box-ks">
+          <div class="vis-ks-header">Kill Switch Node</div>
+
+          <div class="vis-ks-cases">
+            <div class="vis-ks-case vis-ks-case-normal">
+              <span class="vis-ks-state">NORMAL</span>
+              <span class="vis-ks-sep">&#x2192;</span>
+              <span class="vis-ks-action">relay [thr, srv]</span>
+            </div>
+            <div class="vis-ks-case vis-ks-case-kill">
+              <span class="vis-ks-state">TRIGGERED</span>
+              <span class="vis-ks-sep">&#x2192;</span>
+              <span class="vis-ks-action">[0.0,&nbsp;0.0]</span>
+            </div>
+            <div class="vis-ks-case vis-ks-case-kill">
+              <span class="vis-ks-state">ARMED</span>
+              <span class="vis-ks-sep">&#x2192;</span>
+              <span class="vis-ks-action">[0.0,&nbsp;0.0]</span>
+            </div>
+          </div>
+
+          <div class="vis-monitors-label">monitored inputs</div>
+          <div class="vis-monitors">
+            <div class="vis-monitor">
+              <div class="vis-monitor-src">GPS fix</div>
+              <div class="vis-monitor-tags">
+                <span class="vis-tag">T1</span>
+                <span class="vis-tag">T4</span>
+              </div>
+            </div>
+            <div class="vis-monitor">
+              <div class="vis-monitor-src">IMU data</div>
+              <div class="vis-monitor-tags">
+                <span class="vis-tag">T6</span>
+              </div>
+            </div>
+            <div class="vis-monitor">
+              <div class="vis-monitor-src">Serial RC:1/0</div>
+              <div class="vis-monitor-tags">
+                <span class="vis-tag">T2</span>
+              </div>
+            </div>
+            <div class="vis-monitor">
+              <div class="vis-monitor-src">ICMP ping</div>
+              <div class="vis-monitor-tags">
+                <span class="vis-tag">T3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- → /tug1/PWM + Serial → -->
+        <div class="vis-conn">
+          <div class="vis-conn-topic">/tug1/PWM</div>
+          <div class="vis-conn-arrow"></div>
+          <div class="vis-conn-meta">+ Serial</div>
+        </div>
+
+        <!-- Arduino -->
+        <div class="vis-box vis-box-arduino">
+          <div class="vis-box-title">Arduino</div>
+          <div class="vis-box-sub">Thruster</div>
+          <div class="vis-box-sub">Servo</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Six Triggers -->
+  <div class="card">
+    <h2>Six Safety Triggers</h2>
+    <p>Each trigger operates independently. Any single trigger activates the kill output immediately.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Condition</th>
+          <th>Detection method</th>
+          <th>Recovery</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="id">T1</td>
+          <td>Vessel outside permitted boundary</td>
+          <td>GPS fix converted to tank coordinates, then ray-casting polygon test on each GPS callback</td>
+          <td><span class="badge badge-manual">Manual reset</span></td>
+        </tr>
+        <tr>
+          <td class="id">T2</td>
+          <td>RC link or serial connection lost</td>
+          <td>Arduino sends <code>RC:1</code> / <code>RC:0</code> heartbeat every 100 ms; timeout after 1 s without <code>RC:1</code></td>
+          <td><span class="badge badge-manual">Manual reset</span></td>
+        </tr>
+        <tr>
+          <td class="id">T3</td>
+          <td>Operator PC unreachable</td>
+          <td>Background thread sends ICMP ping every 1 s; triggers if RTT exceeds 500 ms or host is down</td>
+          <td><span class="badge badge-auto">Auto recovery</span></td>
+        </tr>
+        <tr>
+          <td class="id">T4</td>
+          <td>GPS rate degraded</td>
+          <td><code>FrequencyMonitor</code>: fires after 3 consecutive 1-second windows below 3 Hz</td>
+          <td><span class="badge badge-auto">Auto recovery</span></td>
+        </tr>
+        <tr>
+          <td class="id">T5</td>
+          <td>PWM values outside safe range</td>
+          <td>Inline range check on every <code>/tug1/PWM_raw</code> message (thruster: 1500–1730, servo: 1100–1900)</td>
+          <td><span class="badge badge-manual">Manual reset</span></td>
+        </tr>
+        <tr>
+          <td class="id">T6</td>
+          <td>IMU rate degraded</td>
+          <td><code>FrequencyMonitor</code>: fires after 3 consecutive windows below 30 Hz</td>
+          <td><span class="badge badge-auto">Auto recovery</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:14px; font-size:13px; color:#8b949e;">
+      Triggers T3, T4, and T6 (remote comms and sensor rate) clear automatically when the condition
+      resolves. Triggers T1, T2, and T5 (boundary, RC link, and PWM range) require a manual service
+      call after the root cause is confirmed resolved.
+    </p>
+  </div>
+
+  <!-- State machine -->
+  <div class="card">
+    <h2>State Machine</h2>
+
+    <div class="states">
+      <div class="state-box state-normal">
+        <div class="state-label">NORMAL</div>
+        <p>All triggers clear. PWM commands forwarded as-is to the Arduino.</p>
+      </div>
+      <div class="state-box state-triggered">
+        <div class="state-label">TRIGGERED</div>
+        <p>One or more auto-recovery triggers active. Kill output active. Clears automatically when triggers resolve.</p>
+      </div>
+      <div class="state-box state-armed">
+        <div class="state-label">ARMED</div>
+        <p>A manual-reset trigger (T1, T2, or T5) fired. Kill output held until the <code>/kill_switch/reset</code> service is called.</p>
+      </div>
+    </div>
+
+    <p style="font-size:13px; color:#8b949e;">
+      The ARMED state is intentionally sticky: even if the trigger condition clears on its own,
+      the kill remains active until an operator explicitly confirms it is safe to resume.
+      The reset service verifies that no manual-reset trigger is still active before accepting the call.
+    </p>
+  </div>
+
+  <!-- FrequencyMonitor -->
+  <div class="card">
+    <h2>Frequency Monitor</h2>
+    <p>
+      Sensor rate degradation (T4, T6) is detected by <code>FrequencyMonitor</code>, a standalone
+      utility class that uses a sliding time window rather than a fixed sampling interval.
+    </p>
+    <p>
+      On each sensor callback, the monitor appends a timestamp and evicts entries older than
+      <code>window_sec</code> (1 second). The current rate is <code>count / window_sec</code>.
+      If this falls below <code>min_hz</code>, a fail counter increments; otherwise it resets to zero.
+      Only after <code>consecutive_fail</code> (3) windows in a row does the monitor return
+      <code>True</code> — preventing transient bursts from causing false alarms.
+    </p>
+
+    <div class="grid2">
+      <div class="mini-card">
+        <div class="label">GPS thresholds</div>
+        <p>min 3 Hz, 3 consecutive windows &rarr; ~3 seconds to trigger</p>
+      </div>
+      <div class="mini-card">
+        <div class="label">IMU thresholds</div>
+        <p>min 30 Hz, 3 consecutive windows &rarr; ~3 seconds to trigger</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROS Topic Interface -->
+  <div class="card">
+    <h2>ROS2 Topic Interface</h2>
+
+    <div class="topic-section">
+      <h3>Subscribed</h3>
+      <table>
+        <thead>
+          <tr><th>Topic</th><th>Type</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>/tug1/PWM_raw</code></td>
+            <td><code>Float64MultiArray</code></td>
+            <td>Raw PWM from inference node — relay or override</td>
+          </tr>
+          <tr>
+            <td><code>/tug1/ublox_gps_node/fix</code></td>
+            <td><code>NavSatFix</code></td>
+            <td>Boundary check (T1) and GPS rate monitor (T4)</td>
+          </tr>
+          <tr>
+            <td><code>/tug1/imu/data</code></td>
+            <td><code>Imu</code></td>
+            <td>IMU rate monitor (T6)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="topic-section">
+      <h3>Published</h3>
+      <table>
+        <thead>
+          <tr><th>Topic</th><th>Type</th><th>Content</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>/tug1/PWM</code></td>
+            <td><code>Float64MultiArray</code></td>
+            <td>Forwarded or overridden PWM sent to Arduino</td>
+          </tr>
+          <tr>
+            <td><code>/tug1/kill_switch/status</code></td>
+            <td><code>String</code> (JSON)</td>
+            <td>Full state snapshot: state, kill_active, all trigger flags, timestamp</td>
+          </tr>
+          <tr>
+            <td><code>/tug1/kill_switch/triggered</code></td>
+            <td><code>Bool</code></td>
+            <td>Simple kill-active flag for downstream consumers</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="topic-section" style="margin-bottom:0;">
+      <h3>Service</h3>
+      <table>
+        <thead>
+          <tr><th>Service</th><th>Type</th><th>Behavior</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>/tug1/kill_switch/reset</code></td>
+            <td><code>std_srvs/Trigger</code></td>
+            <td>Clears ARMED state if no manual-reset trigger is still active</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Design decisions -->
+  <div class="card">
+    <h2>Design Decisions</h2>
+
+    <p>
+      <strong style="color:#e6edf3;">Serial ownership moved to the kill switch.</strong>
+      The original inference node held the Arduino serial connection and sent PWM directly.
+      Relocating serial I/O to the kill switch ensures that a crashed or misbehaving inference node
+      cannot issue motor commands — the Arduino only receives output from the safety layer.
+    </p>
+
+    <p>
+      <strong style="color:#e6edf3;">Minimal change to the inference node.</strong>
+      Only two lines in <code>tugboat_inference_node.py</code> needed to change: renaming the
+      output topic from <code>/tug1/PWM</code> to <code>/tug1/PWM_raw</code>, and removing the
+      serial initialization and send timer. All policy logic, observation assembly, and coordinate
+      math remain untouched.
+    </p>
+
+    <p>
+      <strong style="color:#e6edf3;">No dependency on the ROS2 graph for safety-critical checks.</strong>
+      T2 (RC link) and T3 (operator PC reachability) are detected by background threads that
+      communicate directly over serial and ICMP, respectively. A failure in the ROS2 middleware
+      or DDS layer does not prevent these triggers from firing.
+    </p>
+
+    <p>
+      <strong style="color:#e6edf3;">Lock discipline over all shared state.</strong>
+      Trigger flags, state machine state, and the last RC heartbeat timestamp are mutated only
+      while holding <code>threading.Lock</code>. ROS callbacks, background threads, and the
+      50 Hz timer all contend on the same lock, preventing races between concurrent writers.
+    </p>
+
+    <p style="margin-bottom:0;">
+      <strong style="color:#e6edf3;">Configurable entirely through YAML.</strong>
+      Every threshold — boundary polygon vertices, sensor minimum rates, ping latency limit,
+      PWM safe ranges, RC timeout — is exposed as a ROS2 parameter and loaded from
+      <code>kill_switch_params.yaml</code> at launch. No recompilation is needed to adapt
+      the node to a new deployment site.
+    </p>
+  </div>
+
+  <!-- Tech stack -->
+  <div class="card">
+    <h2>Tech Stack</h2>
+    <div class="pills">
+      <span class="pill">Python 3</span>
+      <span class="pill">ROS2 (rclpy)</span>
+      <span class="pill">pyserial</span>
+      <span class="pill">utm</span>
+      <span class="pill">threading.Lock</span>
+      <span class="pill">ICMP ping (subprocess)</span>
+      <span class="pill">std_srvs/Trigger</span>
+      <span class="pill">colcon build</span>
+    </div>
+  </div>
+
+  <!-- Deployment quick-start -->
+  <div class="card">
+    <h2>Deployment</h2>
+    <p>Before first deployment, update three parameters in <code>config/kill_switch_params.yaml</code>:</p>
+    <table style="margin-top:10px;">
+      <thead>
+        <tr><th>Parameter</th><th>What to set</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>main_pc_ip</code></td>
+          <td>IP address of the operator's PC on the field network</td>
+        </tr>
+        <tr>
+          <td><code>boundary_gps_points</code></td>
+          <td>GPS survey of the actual tank boundary polygon (flat lat/lon list)</td>
+        </tr>
+        <tr>
+          <td><code>serial_port</code></td>
+          <td>Device path for the Arduino (default: <code>/dev/ttyACM1</code>)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pipeline" style="margin-top:18px;">
+<span class="hl">cd ~/ros2_ws</span><br>
+colcon build --packages-select kill_switch<br>
+source install/setup.bash<br>
+ros2 launch kill_switch kill_switch.launch.py<br>
+<br>
+<span class="accent"># monitor status</span><br>
+ros2 topic echo /tug1/kill_switch/status<br>
+<br>
+<span class="accent"># manual reset after resolving T1 / T2 / T5</span><br>
+ros2 service call /tug1/kill_switch/reset std_srvs/srv/Trigger {}
+    </div>
+  </div>
+
+  <div class="footer">
+    Generated 2026-06-12 &mdash; IMRL Autonomous Tugboat Project
+  </div>
+
+</div>
+</body>
+</html>

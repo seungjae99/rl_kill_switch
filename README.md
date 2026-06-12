@@ -7,19 +7,16 @@ ROS2 safety node for the autonomous tugboat (`tug1`). Sits between the RL Infere
 ## System Overview
 
 ```
-[Inference Node]                  [Kill Switch Node]                [Arduino]
-  /tug1/PWM_raw  ─────────────▶  sub: /tug1/PWM_raw
-  (10 Hz, Float64MultiArray)       NORMAL  → relay as-is  ───────▶  T:{thr},S:{srv}\n
-                                   TRIGGERED/ARMED → [0.0, 0.0] ▶  T:0,S:0\n
-
-[Sensors]                                ▲ reads
-  /tug1/ublox_gps_node/fix  ──────────▶  T1 boundary + T4 GPS freq
-  /tug1/imu/data            ──────────▶  T6 IMU freq
-  Serial "RC:1"/"RC:0"      ──────────▶  T2 RC heartbeat
-  ICMP ping → main_pc_ip    ──────────▶  T3 remote comms
+Inference Node ──/tug1/PWM_raw──▶ Kill Switch ──/tug1/PWM──▶ Arduino
+                                        ▲
+                             GPS · IMU · Serial · Ping
 ```
 
-The Inference Node publishes to `/tug1/PWM_raw` (renamed from `/tug1/PWM`). The Kill Switch republishes the result to `/tug1/PWM`, which is the topic the rest of the system consumes.
+---
+
+## Report
+
+[View System Overview Report](https://htmlpreview.github.io/?https://github.com/seungjae99/rl_kill_switch/blob/main/reports/rl_kill_switch_results_overview.html)
 
 ---
 
