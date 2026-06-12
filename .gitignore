@@ -3,5 +3,6 @@
 
 # Track only these files
 !.gitignore
+!README.md
 !kill_switch/
 !kill_switch/**
