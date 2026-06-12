@@ -1,0 +1,6 @@
+# Ignore everything
+*
+
+# Track only these files
+!.gitignore
+!kill_switch.py
