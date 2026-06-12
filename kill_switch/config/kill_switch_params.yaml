@@ -1,0 +1,53 @@
+tug1_kill_switch_node:
+  ros__parameters:
+    own_name: 'tug1'
+
+    # coordinate system (matches tugboat_inference_node.py)
+    origin_lat: 36.3961255
+    origin_lon: 127.401612
+    area_m: 33.0
+
+    # T1 boundary check
+    # flat list [lat1, lon1, lat2, lon2, ...] — pairs define polygon vertices
+    boundary_gps_points: [
+      36.3960255, 127.4014620,   # SW
+      36.3960255, 127.4017620,   # SE
+      36.3963255, 127.4017620,   # NE
+      36.3963255, 127.4014620    # NW
+    ]   # 실제 수조 GPS 측량값으로 교체 필요
+    boundary_check_enabled: true
+
+    # T2 RC loss (serial)
+    serial_port: '/dev/ttyACM1'
+    serial_baud: 115200
+    rc_timeout_sec: 1.0
+
+    # T3 remote comms loss (ICMP ping)
+    main_pc_ip: '192.168.1.100'   # 실측값으로 교체 필요
+    ping_timeout_sec: 1.0
+    ping_threshold_ms: 500.0
+    ping_interval_sec: 1.0
+
+    # T4 GPS degraded
+    gps_min_hz: 3.0
+    gps_consecutive_fail: 3
+
+    # T5 PWM out of range (must match inference node clamp values)
+    thruster_pwm_min: 1500.0
+    thruster_pwm_max: 1730.0
+    servo_pwm_min: 1100.0
+    servo_pwm_max: 1900.0
+
+    # T6 IMU degraded
+    imu_min_hz: 30.0
+    imu_consecutive_fail: 3
+
+    # kill output value
+    kill_pwm_value: 0.0
+
+    # trigger recovery classification
+    auto_recovery_triggers: ['T3', 'T4', 'T6']
+    manual_reset_triggers: ['T1', 'T2', 'T5']
+
+    # monitor loop rate
+    monitor_rate_hz: 50.0
