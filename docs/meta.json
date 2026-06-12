@@ -1,0 +1,4 @@
+{
+  "desc": "ROS2 safety node for autonomous tugboat — trigger-based PWM kill switch with serial and network monitoring",
+  "tags": ["ROS2", "Python"]
+}
