@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RL Kill Switch — 기술 포트폴리오</title>
+<style>
+  /* ─── Color Tokens ─── */
+  :root {
+    --ink:       #1a1f2e;
+    --ink-2:     #3d4460;
+    --ink-3:     #6b7490;
+    --divider:   #dde2ee;
+    --bg:        #f7f8fc;
+    --bg-card:   #ffffff;
+    --bg-code:   #f0f2f8;
+    --accent:    #1a56db;
+    --accent-2:  #0e3fa3;
+    --accent-3:  #e8f0fe;
+    --orange:    #c45000;
+    --orange-bg: #fff4ec;
+    --green:     #166534;
+    --green-bg:  #f0faf4;
+    --purple:    #5b21b6;
+    --purple-bg: #f5f3ff;
+    --red:       #991b1b;
+    --red-bg:    #fef2f2;
+  }
+
+  /* ─── Reset & Base ─── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR',
+                 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  /* ─── Topbar ─── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(247,248,252,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--divider);
+    padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 52px;
+  }
+  .topbar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; color: var(--accent); text-decoration: none; }
+  .topbar-nav  { display: flex; gap: 24px; list-style: none; }
+  .topbar-nav a { font-size: 12.5px; color: var(--ink-3); text-decoration: none; font-weight: 500; }
+  .topbar-nav a:hover { color: var(--accent); }
+  @media (max-width: 600px) { .topbar-nav { display: none; } }
+
+  /* ─── Page ─── */
+  .page { max-width: 900px; margin: 0 auto; padding: 0 24px 64px; }
+
+  /* ─── Hero ─── */
+  .hero { padding: 52px 0 36px; }
+  .hero-eyebrow {
+    font-size: 11.5px; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px;
+  }
+  .hero h1 { font-size: 30px; font-weight: 800; color: var(--ink); line-height: 1.25; margin-bottom: 16px; }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub { font-size: 15px; color: var(--ink-2); max-width: 680px; margin-bottom: 24px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge {
+    font-size: 12px; font-weight: 600; padding: 3px 10px;
+    border-radius: 4px; border: 1px solid; letter-spacing: 0.02em;
+  }
+  .b-ros  { color: var(--green);  background: var(--green-bg);  border-color: #86efac; }
+  .b-py   { color: #1e3a8a;       background: var(--accent-3);  border-color: #93c5fd; }
+  .b-pt   { color: var(--orange); background: var(--orange-bg); border-color: #fdba74; }
+  .b-ser  { color: var(--purple); background: var(--purple-bg); border-color: #c4b5fd; }
+  .b-thr  { color: var(--red);    background: var(--red-bg);    border-color: #fca5a5; }
+
+  /* ─── Metric Row ─── */
+  .metric-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 44px; }
+  .metric-card {
+    background: var(--bg-card); border: 1px solid var(--divider);
+    border-radius: 10px; padding: 20px 22px; border-top: 3px solid var(--accent);
+  }
+  .metric-num   { font-size: 28px; font-weight: 800; color: var(--accent); line-height: 1; margin-bottom: 4px; }
+  .metric-label { font-size: 12px; color: var(--ink-3); font-weight: 500; letter-spacing: 0.02em; }
+  .metric-desc  { font-size: 12.5px; color: var(--ink-2); margin-top: 6px; line-height: 1.5; }
+  @media (max-width: 680px) { .metric-row { grid-template-columns: 1fr; } }
+
+  /* ─── Section ─── */
+  .section { margin-bottom: 44px; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .section-num {
+    font-size: 11px; font-weight: 700; color: var(--accent);
+    background: var(--accent-3); padding: 2px 8px; border-radius: 4px;
+    letter-spacing: 0.06em; font-family: 'JetBrains Mono', monospace;
+  }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--ink); }
+
+  /* ─── Card ─── */
+  .card {
+    background: var(--bg-card); border: 1px solid var(--divider);
+    border-radius: 10px; padding: 26px 28px; margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-3); margin-bottom: 14px;
+  }
+
+  /* ─── Grid ─── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 680px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ─── Callout ─── */
+  .callout {
+    border-radius: 8px; padding: 12px 16px; font-size: 13.5px;
+    border-left: 3px solid; margin-bottom: 12px;
+  }
+  .callout-problem  { background: var(--red-bg);    border-color: #ef4444; color: #7f1d1d; }
+  .callout-solution { background: var(--green-bg);  border-color: #22c55e; color: var(--green); }
+  .callout-info     { background: var(--accent-3);  border-color: var(--accent); color: #1e3a8a; }
+  .callout-warn     { background: var(--orange-bg); border-color: #f97316; color: var(--orange); }
+
+  /* ─── Flow ─── */
+  .flow { display: flex; flex-direction: column; gap: 10px; }
+  .flow-step { display: flex; gap: 14px; align-items: flex-start; }
+  .flow-num {
+    flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--accent-3); color: var(--accent);
+    font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; margin-top: 2px;
+  }
+  .flow-body { font-size: 13.5px; color: var(--ink-2); }
+
+  /* ─── Pipeline ─── */
+  .pipeline {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 6px; margin-bottom: 12px;
+  }
+  .pipe-step {
+    border: 1px solid var(--divider); border-radius: 8px;
+    padding: 10px 14px; background: var(--bg-card); min-width: 110px;
+  }
+  .plabel { font-size: 11px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .pval   { font-size: 13px; font-weight: 600; color: var(--ink); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+  .pipe-arrow { font-size: 18px; color: var(--ink-3); }
+  .pipe-note { font-size: 12px; color: var(--ink-3); font-style: italic; }
+
+  /* ─── Table ─── */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th {
+    background: var(--bg-code); color: var(--ink-3);
+    font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; padding: 10px 12px; text-align: left;
+    border-bottom: 1px solid var(--divider);
+  }
+  td { padding: 10px 12px; color: var(--ink-2); border-bottom: 1px solid #eef0f6; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ─── Code Block ─── */
+  pre {
+    background: #1e2130; border: 1px solid #2d3148;
+    border-radius: 8px; padding: 18px 20px;
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    font-size: 12.5px; line-height: 1.65; color: #c9d1e0;
+    overflow-x: auto; margin-bottom: 12px;
+  }
+  .kw   { color: #ff7b72; }
+  .fn   { color: #d2a8ff; }
+  .str  { color: #a5d6ff; }
+  .cmt  { color: #6b7890; font-style: italic; }
+  .num  { color: #79c0ff; }
+  .type { color: #ffa657; }
+
+  /* ─── Inline Code ─── */
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    font-size: 12.5px; background: var(--bg-code);
+    border: 1px solid var(--divider); border-radius: 3px;
+    padding: 1px 5px; color: #9a3412;
+  }
+
+  /* ─── Result Image ─── */
+  .result-wrap { margin-bottom: 16px; }
+  .result-img  { max-width: 100%; border-radius: 8px; border: 1px solid var(--divider); }
+  .result-caption { font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+
+  /* ─── Tech Stack ─── */
+  .stack-item {
+    background: var(--bg-card); border: 1px solid var(--divider);
+    border-radius: 10px; padding: 18px 20px;
+  }
+  .stack-name { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .stack-role { font-size: 12.5px; color: var(--ink-3); }
+
+  /* ─── Trigger Badges ─── */
+  .trigger-badge {
+    display: inline-block; font-size: 11.5px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace; padding: 2px 8px;
+    border-radius: 4px; margin-right: 4px;
+  }
+  .t-manual { background: var(--red-bg);   color: var(--red);   border: 1px solid #fca5a5; }
+  .t-auto   { background: var(--green-bg); color: var(--green); border: 1px solid #86efac; }
+
+  /* ─── State Machine Diagram ─── */
+  .fsm-wrap {
+    display: flex; gap: 12px; align-items: center;
+    flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .fsm-state {
+    border-radius: 8px; padding: 12px 18px; text-align: center;
+    min-width: 110px; border: 2px solid;
+  }
+  .fsm-normal    { background: var(--green-bg);  border-color: #22c55e; }
+  .fsm-triggered { background: var(--orange-bg); border-color: #f97316; }
+  .fsm-armed     { background: var(--red-bg);    border-color: #ef4444; }
+  .fsm-label     { font-size: 13px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+  .fsm-sub       { font-size: 11px; color: var(--ink-3); margin-top: 3px; }
+  .fsm-arrow     { font-size: 14px; color: var(--ink-3); white-space: nowrap; text-align: center; }
+  .fsm-arrow span { display: block; font-size: 11px; color: var(--ink-3); }
+
+  /* ─── Footer ─── */
+  .footer {
+    padding-top: 28px; border-top: 1px solid var(--divider);
+    font-size: 12px; color: var(--ink-3);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+
+  p { color: var(--ink-2); font-size: 13.5px; margin-bottom: 10px; }
+  ul { padding-left: 18px; color: var(--ink-2); font-size: 13.5px; }
+  ul li { margin-bottom: 4px; }
+  strong { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="topbar-logo" href="#">CHOI SEUNGJAE · PORTFOLIO</a>
+  <ul class="topbar-nav">
+    <li><a href="#background">개발 배경</a></li>
+    <li><a href="#architecture">시스템 구조</a></li>
+    <li><a href="#implementation">구현 상세</a></li>
+    <li><a href="#result">검증 결과</a></li>
+    <li><a href="#stack">기술 스택</a></li>
+  </ul>
+</nav>
+
+<div class="page">
+
+  <!-- ─── Hero ─── -->
+  <header class="hero">
+    <div class="hero-eyebrow">Robotics Safety · ROS2 · 2025</div>
+    <h1>RL Kill Switch — <span>자율운항 안전 차단 노드</span></h1>
+    <p class="hero-sub">
+      강화학습 정책으로 제어되는 자율 예인선(tug1)의 ROS2 안전 레이어.
+      추론 노드와 Arduino 사이에 위치하며, 6가지 트리거 조건을 실시간 감시하여
+      이상 감지 시 즉시 PWM 출력을 <code>[0.0, 0.0]</code> 으로 차단하고 Arduino 시리얼 통신을 단독으로 관리한다.
+    </p>
+    <div class="badge-row">
+      <span class="badge b-ros">ROS2 (rclpy)</span>
+      <span class="badge b-py">Python 3</span>
+      <span class="badge b-pt">PyTorch JIT</span>
+      <span class="badge b-ser">pyserial</span>
+      <span class="badge b-thr">threading</span>
+    </div>
+  </header>
+
+  <!-- ─── Metrics ─── -->
+  <div class="metric-row">
+    <div class="metric-card">
+      <div class="metric-num">6</div>
+      <div class="metric-label">Safety Triggers</div>
+      <div class="metric-desc">T1 경계이탈부터 T6 IMU 불량까지 — 수동/자동복구 분리 설계</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-num">50 Hz</div>
+      <div class="metric-label">Monitor Rate</div>
+      <div class="metric-desc">RC 타임아웃 감시 및 상태 퍼블리시 주기 — 10 Hz 제어루프 대비 5× 빠른 감시</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-num">3-state</div>
+      <div class="metric-label">State Machine</div>
+      <div class="metric-desc">NORMAL / TRIGGERED / ARMED — 수동 트리거는 서비스 콜 없이 복구 불가</div>
+    </div>
+  </div>
+
+  <!-- ─── 01 개발 배경 ─── -->
+  <section class="section" id="background">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <span class="section-title">개발 배경 및 문제 정의</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">배경</div>
+      <p>충남대 IMRL 연구실은 33 × 33 m 실내 수조에서 강화학습 정책 네트워크(TorchScript JIT, 44-dim 관측 벡터)로 제어되는 자율 예인선 실험을 수행한다. 기존 시스템은 추론 노드가 PWM 명령을 Arduino에 직접 전송하는 단일 파이프라인 구조였다.</p>
+      <div class="callout callout-problem">
+        <strong>문제:</strong> RL 정책이 비정상 출력을 생성하거나 GPS/IMU 센서가 열화될 경우, RC 조종기 연결이 끊어지거나 선박이 수조 경계를 이탈해도 이를 차단할 독립적인 안전 레이어가 없었다.
+      </div>
+      <div class="callout callout-info">
+        <strong>추가 제약:</strong> 기존 추론 노드가 Arduino 시리얼 포트를 직접 점유하고 있어, Kill Switch가 중간에 개입해도 Arduino는 정책 출력을 그대로 수신할 수 있었다.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">목표 및 설계 방향</div>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-body"><strong>토픽 분리:</strong> 추론 노드 출력을 <code>/tug1/PWM_raw</code>로 변경하고 Kill Switch가 이를 수신·검사 후 <code>/tug1/PWM</code>으로 relay — Arduino 직접 접근 차단.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-body"><strong>시리얼 독점:</strong> Arduino 시리얼 통신을 Kill Switch로 이전. 추론 노드의 <code>send_to_arduino()</code> 및 <code>serial.Serial</code> 초기화 코드 제거.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-body"><strong>6가지 트리거:</strong> 경계이탈(T1), RC 두절(T2), 원격통신 두절(T3), GPS 불량(T4), PWM 범위(T5), IMU 불량(T6) 독립 감시.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">4</div>
+          <div class="flow-body"><strong>복구 분류:</strong> 수동 트리거(T1·T2·T5)는 ROS2 서비스 콜로만 복구, 자동복구 트리거(T3·T4·T6)는 조건 해소 시 자동 정상화.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 02 시스템 구조 ─── -->
+  <section class="section" id="architecture">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <span class="section-title">시스템 구조 및 데이터 흐름</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">전체 파이프라인</div>
+      <div class="pipeline">
+        <div class="pipe-step" style="border-color:var(--divider);">
+          <div class="plabel">Inference Node</div>
+          <div class="pval">10 Hz</div>
+        </div>
+        <div class="pipe-arrow">→<br><span style="font-size:11px;color:var(--ink-3);">/tug1/PWM_raw</span></div>
+        <div class="pipe-step" style="border-color:var(--accent); background:var(--accent-3);">
+          <div class="plabel" style="color:var(--accent);">Kill Switch</div>
+          <div class="pval" style="color:var(--accent);">50 Hz monitor</div>
+        </div>
+        <div class="pipe-arrow">→<br><span style="font-size:11px;color:var(--ink-3);">/tug1/PWM + Serial</span></div>
+        <div class="pipe-step" style="border-color:var(--divider);">
+          <div class="plabel">Arduino</div>
+          <div class="pval">Thruster · Servo</div>
+        </div>
+      </div>
+      <p class="pipe-note">Kill Switch가 NORMAL 상태이면 PWM_raw를 그대로 relay. TRIGGERED/ARMED 상태이면 [0.0, 0.0] 출력 및 Serial "T:0,S:0\n" 전송.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">구독 토픽</div>
+        <table>
+          <thead><tr><th>토픽</th><th>목적</th></tr></thead>
+          <tbody>
+            <tr><td><code>/tug1/PWM_raw</code></td><td>T5 검사 + relay</td></tr>
+            <tr><td><code>/tug1/ublox_gps_node/fix</code></td><td>T1 경계 + T4 주파수</td></tr>
+            <tr><td><code>/tug1/imu/data</code></td><td>T6 IMU 주파수</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title">발행 토픽 / 서비스</div>
+        <table>
+          <thead><tr><th>이름</th><th>내용</th></tr></thead>
+          <tbody>
+            <tr><td><code>/tug1/PWM</code></td><td>relay 또는 [0.0, 0.0]</td></tr>
+            <tr><td><code>/tug1/kill_switch/status</code></td><td>JSON 상태 (String)</td></tr>
+            <tr><td><code>/tug1/kill_switch/triggered</code></td><td>Bool 활성 여부</td></tr>
+            <tr><td><code>/tug1/kill_switch/reset</code></td><td>ARMED 복구 서비스</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">트리거 목록</div>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>이름</th><th>감지 방법</th><th>복구</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>T1</strong></td>
+            <td>경계이탈</td>
+            <td>GPS 콜백 → Ray-casting (로컬 좌표 다각형)</td>
+            <td><span class="trigger-badge t-manual">수동</span></td>
+          </tr>
+          <tr>
+            <td><strong>T2</strong></td>
+            <td>RC 통신두절</td>
+            <td>시리얼 <code>RC:0</code> 수신 또는 <code>rc_timeout_sec</code> 초과</td>
+            <td><span class="trigger-badge t-manual">수동</span></td>
+          </tr>
+          <tr>
+            <td><strong>T3</strong></td>
+            <td>원격통신두절</td>
+            <td>ICMP ping → Main PC IP (RTT ≥ 500 ms 또는 무응답)</td>
+            <td><span class="trigger-badge t-auto">자동</span></td>
+          </tr>
+          <tr>
+            <td><strong>T4</strong></td>
+            <td>GPS 불량</td>
+            <td>FrequencyMonitor — &lt; 3 Hz, 3회 연속</td>
+            <td><span class="trigger-badge t-auto">자동</span></td>
+          </tr>
+          <tr>
+            <td><strong>T5</strong></td>
+            <td>PWM 범위 초과</td>
+            <td>PWM_raw 콜백 내 즉시: thr ∉ [1500, 1730] 또는 srv ∉ [1100, 1900]</td>
+            <td><span class="trigger-badge t-manual">수동</span></td>
+          </tr>
+          <tr>
+            <td><strong>T6</strong></td>
+            <td>IMU 불량</td>
+            <td>FrequencyMonitor — &lt; 30 Hz, 3회 연속</td>
+            <td><span class="trigger-badge t-auto">자동</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">상태 머신</div>
+      <div class="fsm-wrap">
+        <div class="fsm-state fsm-normal">
+          <div class="fsm-label" style="color:var(--green);">NORMAL</div>
+          <div class="fsm-sub">PWM relay 중</div>
+        </div>
+        <div class="fsm-arrow">
+          → T1~T6 발생 →<br>
+          <span>(auto 트리거만)</span>
+        </div>
+        <div class="fsm-state fsm-triggered">
+          <div class="fsm-label" style="color:var(--orange);">TRIGGERED</div>
+          <div class="fsm-sub">kill_active = True</div>
+        </div>
+        <div class="fsm-arrow">
+          → T3·T4·T6 해소 →<br>
+          <span>(자동 복구)</span>
+        </div>
+        <div class="fsm-state fsm-normal">
+          <div class="fsm-label" style="color:var(--green);">NORMAL</div>
+          <div class="fsm-sub">자동 복귀</div>
+        </div>
+      </div>
+      <div class="fsm-wrap">
+        <div class="fsm-state fsm-triggered">
+          <div class="fsm-label" style="color:var(--orange);">TRIGGERED</div>
+          <div class="fsm-sub">또는 NORMAL</div>
+        </div>
+        <div class="fsm-arrow">→ T1·T2·T5 발생 →</div>
+        <div class="fsm-state fsm-armed">
+          <div class="fsm-label" style="color:var(--red);">ARMED</div>
+          <div class="fsm-sub">kill_active = True</div>
+        </div>
+        <div class="fsm-arrow">→ /reset 서비스 →</div>
+        <div class="fsm-state fsm-normal">
+          <div class="fsm-label" style="color:var(--green);">NORMAL</div>
+          <div class="fsm-sub">수동 복구</div>
+        </div>
+      </div>
+      <div class="callout callout-warn" style="margin-top:8px;">
+        <strong>주의:</strong> ARMED 상태는 수동 트리거(T1·T2·T5)가 모두 해소된 후 <code>ros2 service call /tug1/kill_switch/reset std_srvs/srv/Trigger {}</code> 호출 시에만 NORMAL로 전환된다.
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 03 핵심 구현 ─── -->
+  <section class="section" id="implementation">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <span class="section-title">핵심 구현 상세</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">FrequencyMonitor — 슬라이딩 윈도우 주파수 감시</div>
+      <p>ROS2 센서 콜백 주파수를 실시간 측정하는 독립 유틸리티 클래스. GPS(3 Hz)와 IMU(30 Hz) 각각에 인스턴스를 생성하여 독립적으로 감시한다.</p>
+      <pre><span class="kw">class</span> <span class="type">FrequencyMonitor</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, window_sec=<span class="num">1.0</span>, min_hz=<span class="num">3.0</span>, consecutive_fail=<span class="num">3</span>):
+        <span class="kw">self</span>._ts = deque()        <span class="cmt"># timestamp 슬라이딩 윈도우</span>
+        <span class="kw">self</span>.fail_count = <span class="num">0</span>
+
+    <span class="kw">def</span> <span class="fn">update</span>(<span class="kw">self</span>) -> bool:
+        now = time.time()
+        <span class="kw">self</span>._ts.append(now)
+        <span class="kw">while</span> <span class="kw">self</span>._ts <span class="kw">and</span> (now - <span class="kw">self</span>._ts[<span class="num">0</span>]) > <span class="kw">self</span>.window_sec:
+            <span class="kw">self</span>._ts.popleft()        <span class="cmt"># 윈도우 밖 타임스탬프 제거</span>
+        hz = len(<span class="kw">self</span>._ts) / <span class="kw">self</span>.window_sec
+        <span class="kw">if</span> hz < <span class="kw">self</span>.min_hz:
+            <span class="kw">self</span>.fail_count += <span class="num">1</span>
+        <span class="kw">else</span>:
+            <span class="kw">self</span>.fail_count = <span class="num">0</span>    <span class="cmt"># 회복 시 카운터 리셋</span>
+        <span class="kw">return</span> <span class="kw">self</span>.fail_count >= <span class="kw">self</span>.consecutive_fail</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-title">T1 — Ray-Casting 경계이탈 감지</div>
+      <p>수조 경계 GPS 좌표를 노드 시작 시 한 번만 로컬 탱크 좌표로 변환하여 저장. GPS 콜백마다 Ray-casting으로 다각형 내부 여부 판별.</p>
+      <div class="callout callout-info">
+        <strong>설계 결정:</strong> ROS2 파라미터는 중첩 리스트를 지원하지 않으므로 <code>boundary_gps_points</code>를 평탄화된 1-D float 배열 <code>[lat1, lon1, lat2, lon2, ...]</code>로 선언하고 노드 내부에서 쌍으로 파싱.
+      </div>
+      <pre><span class="kw">def</span> <span class="fn">_point_in_polygon</span>(<span class="kw">self</span>, px, pz, polygon) -> bool:
+    inside = <span class="kw">False</span>
+    n, j = len(polygon), len(polygon) - <span class="num">1</span>
+    <span class="kw">for</span> i <span class="kw">in</span> range(n):
+        xi, zi = polygon[i]
+        xj, zj = polygon[j]
+        <span class="kw">if</span> ((zi > pz) != (zj > pz)) <span class="kw">and</span> \
+           (px < (xj - xi) * (pz - zi) / (zj - zi) + xi):
+            inside = <span class="kw">not</span> inside
+        j = i
+    <span class="kw">return</span> inside</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-title">T3 — ICMP Ping 원격통신 감시</div>
+      <p>ROS 토픽과 무관하게 USV가 직접 Main PC에 1 Hz ICMP ping을 보내 통신 상태를 독립적으로 확인. 백그라운드 daemon 스레드로 실행.</p>
+      <pre><span class="kw">def</span> <span class="fn">_ping_once</span>(<span class="kw">self</span>, host: str) -> <span class="type">float</span> | <span class="kw">None</span>:
+    result = subprocess.<span class="fn">run</span>(
+        [<span class="str">'ping'</span>, <span class="str">'-c'</span>, <span class="str">'1'</span>, <span class="str">'-W'</span>, <span class="str">'1'</span>, host],
+        capture_output=<span class="kw">True</span>, text=<span class="kw">True</span>, timeout=<span class="num">2.0</span>
+    )
+    <span class="kw">if</span> result.returncode == <span class="num">0</span>:
+        <span class="kw">for</span> token <span class="kw">in</span> result.stdout.split():
+            <span class="kw">if</span> token.startswith(<span class="str">'time='</span>):
+                <span class="kw">return</span> float(token.split(<span class="str">'='</span>)[<span class="num">1</span>])  <span class="cmt"># RTT (ms)</span>
+    <span class="kw">return</span> <span class="kw">None</span>  <span class="cmt"># 응답 없음</span></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Threading 모델 및 Lock 전략</div>
+      <p>두 개의 백그라운드 daemon 스레드와 ROS2 스핀 스레드가 공유 상태에 접근하므로 <code>threading.Lock</code>으로 모든 공유 변수를 보호한다.</p>
+      <table>
+        <thead><tr><th>스레드</th><th>역할</th><th>주기</th><th>Lock 사용</th></tr></thead>
+        <tbody>
+          <tr><td>ROS2 spin</td><td>콜백 처리 (GPS, IMU, PWM_raw)</td><td>비동기</td><td>콜백 내부</td></tr>
+          <tr><td><code>_serial_reader_thread</code></td><td>Arduino RC:1/RC:0 수신 (T2)</td><td>50 Hz polling</td><td>상태 갱신 시</td></tr>
+          <tr><td><code>_ping_thread_loop</code></td><td>ICMP ping (T3)</td><td>1 Hz</td><td>트리거 갱신 시</td></tr>
+          <tr><td>ROS2 타이머</td><td>RC 타임아웃 + 상태 퍼블리시</td><td>50 Hz</td><td>타임아웃 검사 시</td></tr>
+        </tbody>
+      </table>
+      <div class="callout callout-info" style="margin-top:12px;">
+        <strong>설계 원칙:</strong> <code>pub_pwm.publish()</code> 등 ROS2 퍼블리셔 호출은 Lock 밖에서만 수행. Lock 내부에서는 상태 변수 변경만 하고 메시지 객체를 준비한 뒤 Lock 해제 후 퍼블리시.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">좌표계 변환 — WGS84 → UTM → Tank-LHS</div>
+      <pre><span class="cmt"># WGS84 → UTM (Python utm 라이브러리)</span>
+E0, N0, *_ = utm.<span class="fn">from_latlon</span>(ORIGIN_LAT, ORIGIN_LON)
+
+<span class="kw">def</span> <span class="fn">enu_to_tank</span>(e, n, u):
+    <span class="cmt"># Tank-LHS: +X=East, +Y=Down, +Z=North</span>
+    <span class="kw">return</span> (e - E0, -u, n - N0)
+
+<span class="cmt"># GPS 콜백에서 사용</span>
+e, n, *_ = utm.<span class="fn">from_latlon</span>(msg.latitude, msg.longitude)
+x, _, z = <span class="fn">enu_to_tank</span>(e, n, <span class="num">0.0</span>)  <span class="cmt"># Kill Switch와 Inference Node 동일 변환</span></pre>
+      <div class="callout callout-solution">
+        <strong>일관성 보장:</strong> Kill Switch와 Inference Node가 동일한 <code>ORIGIN_LAT/LON</code>과 <code>enu_to_tank()</code> 함수를 사용하여 경계 좌표 변환 오차 없음.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">PWM 처리 흐름</div>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-body"><strong>수신:</strong> <code>/tug1/PWM_raw</code> — Inference Node가 발행한 <code>[thruster_pwm, servo_pwm]</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-body"><strong>T5 검사:</strong> thr ∉ [1500, 1730] 또는 srv ∉ [1100, 1900]이면 <code>_set_trigger('T5', True)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-body"><strong>출력 결정:</strong> <code>kill_active</code>이면 <code>[0.0, 0.0]</code>, 아니면 <code>list(msg.data)</code></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">4</div>
+          <div class="flow-body"><strong>퍼블리시:</strong> <code>/tug1/PWM</code> 토픽 발행 + Arduino 시리얼 <code>"T:{thr},S:{srv}\n"</code> 전송</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 04 검증 결과 ─── -->
+  <section class="section" id="result">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <span class="section-title">검증 결과</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">트리거 테스트 시나리오</div>
+      <table>
+        <thead><tr><th>트리거</th><th>테스트 방법</th><th>기대 결과</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>T1</strong> 경계이탈</td>
+            <td>rosbag으로 수조 밖 GPS 좌표 재생</td>
+            <td><code>/tug1/PWM</code> → <code>[0.0, 0.0]</code>, Serial <code>T:0,S:0</code></td>
+          </tr>
+          <tr>
+            <td><strong>T2</strong> RC 두절</td>
+            <td>Arduino RC 채널 비활성화 후 1초 대기</td>
+            <td><code>/tug1/PWM</code> → <code>[0.0, 0.0]</code></td>
+          </tr>
+          <tr>
+            <td><strong>T3</strong> 통신두절</td>
+            <td><code>sudo iptables -A OUTPUT -d &lt;ip&gt; -j DROP</code></td>
+            <td><code>/tug1/PWM</code> → <code>[0.0, 0.0]</code></td>
+          </tr>
+          <tr>
+            <td><strong>T3</strong> 자동복구</td>
+            <td>iptables 규칙 제거</td>
+            <td>relay 자동 재개</td>
+          </tr>
+          <tr>
+            <td><strong>T4</strong> GPS 불량</td>
+            <td><code>/fix</code> 토픽 2 Hz 이하로 발행</td>
+            <td><code>/tug1/PWM</code> → <code>[0.0, 0.0]</code></td>
+          </tr>
+          <tr>
+            <td><strong>T5</strong> PWM 범위</td>
+            <td><code>ros2 topic pub ... "data: [950.0, 1000.0]"</code></td>
+            <td><code>/tug1/PWM</code> → <code>[0.0, 0.0]</code></td>
+          </tr>
+          <tr>
+            <td><strong>T6</strong> IMU 불량</td>
+            <td><code>/imu/data</code> 토픽 20 Hz 이하로 발행</td>
+            <td><code>/tug1/PWM</code> → <code>[0.0, 0.0]</code></td>
+          </tr>
+          <tr>
+            <td>정상 relay</td>
+            <td><code>"data: [1600.0, 1500.0]"</code> 발행</td>
+            <td><code>/tug1/PWM</code>에 동일 값 echo</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">시스템 모니터링 명령</div>
+        <pre><span class="cmt"># 상태 JSON 실시간 출력</span>
+ros2 topic <span class="fn">echo</span> /tug1/kill_switch/status
+
+<span class="cmt"># Kill 활성 여부</span>
+ros2 topic <span class="fn">echo</span> /tug1/kill_switch/triggered
+
+<span class="cmt"># 최종 PWM 출력 확인</span>
+ros2 topic <span class="fn">echo</span> /tug1/PWM</pre>
+      </div>
+      <div class="card">
+        <div class="card-title">수동 리셋 절차</div>
+        <div class="callout callout-warn" style="margin-bottom:12px;">
+          <strong>조건:</strong> T1·T2·T5가 모두 해소되었을 때만 리셋 허용. 아니면 서비스가 <code>success: False</code> 반환.
+        </div>
+        <pre>ros2 service call \
+  /tug1/kill_switch/reset \
+  std_srvs/srv/Trigger {}</pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">알려진 한계 및 향후 과제</div>
+      <div class="callout callout-problem">
+        <strong>하드코딩된 좌표:</strong> <code>boundary_gps_points</code>와 <code>main_pc_ip</code>는 배포 전 <code>kill_switch_params.yaml</code>에서 실측값으로 교체 필요.
+      </div>
+      <div class="callout callout-problem">
+        <strong>센서 손실 처리 없음:</strong> GPS/IMU 토픽이 완전히 중단되면 FrequencyMonitor가 정확한 Hz를 계산하지 못하고 즉시 트리거가 발동되지 않을 수 있음 (콜백 미호출 시 update() 미실행).
+      </div>
+      <div class="callout callout-info">
+        <strong>향후 개선:</strong> 주기적인 Watchdog 타이머를 추가하여 콜백이 전혀 없을 경우에도 T4/T6 트리거를 강제 발동하도록 개선 예정.
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 05 기술 스택 ─── -->
+  <section class="section" id="stack">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <span class="section-title">기술 스택 및 환경</span>
+    </div>
+
+    <div class="grid-3">
+      <div class="stack-item">
+        <div class="stack-name">Python 3 / rclpy</div>
+        <div class="stack-role">ROS2 노드 구현. pub/sub, service, timer, QoS 프로파일 관리</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">PyTorch JIT</div>
+        <div class="stack-role">Inference Node에서 TorchScript 모델 로드 및 10 Hz 추론 (<code>torch.no_grad()</code>)</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">pyserial</div>
+        <div class="stack-role">Arduino 시리얼 통신 독점 관리. 115200 baud, RC heartbeat 수신</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">threading</div>
+        <div class="stack-role">ping 루프와 시리얼 읽기를 daemon 스레드로 분리. Lock으로 공유 상태 보호</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">utm (Python)</div>
+        <div class="stack-role">WGS84 → UTM 변환. 노드 시작 시 경계 좌표 로컬 좌표계로 사전 변환</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">collections.deque</div>
+        <div class="stack-role">FrequencyMonitor 슬라이딩 윈도우 구현. O(1) 양단 삽입/삭제</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">ROS2 Parameters</div>
+        <div class="stack-role">YAML 파라미터 파일로 트리거 임계값, IP, 시리얼 포트 런타임 주입</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">std_srvs/Trigger</div>
+        <div class="stack-role">ARMED 상태 수동 복구 서비스. 수동 트리거 잔존 시 거부 응답 반환</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-name">subprocess (ping)</div>
+        <div class="stack-role">시스템 ICMP ping 명령 실행. RTT 파싱으로 원격통신 품질 측정</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <div class="card-title">개발 환경</div>
+      <table>
+        <thead><tr><th>항목</th><th>값</th></tr></thead>
+        <tbody>
+          <tr><td>ROS 버전</td><td>ROS2 (ament_python 빌드)</td></tr>
+          <tr><td>빌드 도구</td><td><code>colcon build --packages-select kill_switch</code></td></tr>
+          <tr><td>실험 환경</td><td>33 × 33 m 실내 수조, 충남대 IMRL 연구실</td></tr>
+          <tr><td>대상 하드웨어</td><td>Arduino on <code>/dev/ttyACM1</code>, u-blox GPS, IMU</td></tr>
+          <tr><td>RL 모델</td><td>TorchScript JIT (<code>tugboat_policy_44.pt</code>), 44-dim 관측 벡터</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div><strong>최승재 (Choi Seungjae)</strong> · 자율운항시스템공학과 · 충남대학교</div>
+    <div>RL Kill Switch · IMRL 연구실 · 2025</div>
+  </footer>
+
+</div>
+</body>
+</html>
