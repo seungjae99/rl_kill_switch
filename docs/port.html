@@ -297,7 +297,7 @@
 
     <div class="card">
       <div class="card-title">배경</div>
-      <p>충남대 IMRL 연구실은 33 × 33 m 실내 수조에서 강화학습 정책 네트워크(TorchScript JIT, 44-dim 관측 벡터)로 제어되는 자율 예인선 실험을 수행한다. 기존 시스템은 추론 노드가 PWM 명령을 Arduino에 직접 전송하는 단일 파이프라인 구조였다.</p>
+      <p>산학 과제 프로젝트로 33 × 33 m 실내 수조에서 강화학습 정책 네트워크(TorchScript JIT, 44-dim 관측 벡터)로 제어되는 자율 예인선 실험을 수행한다. 기존 시스템은 추론 노드가 PWM 명령을 Arduino에 직접 전송하는 단일 파이프라인 구조였다.</p>
       <div class="callout callout-problem">
         <strong>문제:</strong> RL 정책이 비정상 출력을 생성하거나 GPS/IMU 센서가 열화될 경우, RC 조종기 연결이 끊어지거나 선박이 수조 경계를 이탈해도 이를 차단할 독립적인 안전 레이어가 없었다.
       </div>
@@ -741,7 +741,7 @@ ros2 topic <span class="fn">echo</span> /tug1/PWM</pre>
         <tbody>
           <tr><td>ROS 버전</td><td>ROS2 (ament_python 빌드)</td></tr>
           <tr><td>빌드 도구</td><td><code>colcon build --packages-select kill_switch</code></td></tr>
-          <tr><td>실험 환경</td><td>33 × 33 m 실내 수조, 충남대 IMRL 연구실</td></tr>
+          <tr><td>실험 환경</td><td>33 × 33 m 실내 수조, 산학 과제 프로젝트</td></tr>
           <tr><td>대상 하드웨어</td><td>Arduino on <code>/dev/ttyACM1</code>, u-blox GPS, IMU</td></tr>
           <tr><td>RL 모델</td><td>TorchScript JIT (<code>tugboat_policy_44.pt</code>), 44-dim 관측 벡터</td></tr>
         </tbody>
@@ -750,8 +750,8 @@ ros2 topic <span class="fn">echo</span> /tug1/PWM</pre>
   </section>
 
   <footer class="footer">
-    <div><strong>최승재 (Choi Seungjae)</strong> · 자율운항시스템공학과 · 충남대학교</div>
-    <div>RL Kill Switch · IMRL 연구실 · 2025</div>
+    <div><strong>최승재 (Choi Seungjae)</strong></div>
+    <div>RL Kill Switch · 산학 과제 프로젝트 · 2025</div>
   </footer>
 
 </div>
