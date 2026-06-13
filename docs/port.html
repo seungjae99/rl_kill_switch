@@ -242,6 +242,7 @@
   <a class="topbar-logo" href="#">CHOI SEUNGJAE · PORTFOLIO</a>
   <ul class="topbar-nav">
     <li><a href="#background">개발 배경</a></li>
+    <li><a href="#fusa">FuSa 분석</a></li>
     <li><a href="#architecture">시스템 구조</a></li>
     <li><a href="#implementation">구현 상세</a></li>
     <li><a href="#result">검증 결과</a></li>
@@ -329,10 +330,141 @@
     </div>
   </section>
 
-  <!-- ─── 02 시스템 구조 ─── -->
-  <section class="section" id="architecture">
+  <!-- ─── 02 FuSa 트리거 도출 ─── -->
+  <section class="section" id="fusa">
     <div class="section-header">
       <span class="section-num">02</span>
+      <span class="section-title">FuSa 기반 트리거 도출 과정</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">분석 개요</div>
+      <p>실해역 자율운항 환경에서의 안전성 확보를 위해 <strong>기능안전(FuSa, Functional Safety)</strong> 방법론을 적용하여 Kill Switch 트리거 조건을 체계적으로 도출하였다. 위험 요소 식별 → 위험도 평가 → 트리거 확정의 3단계 프로세스를 따른다.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">1단계 — 운용 상황 정의</div>
+      <p style="margin-bottom:14px;">시스템의 실제 운용 맥락을 명확히 정의하여 분석 범위를 설정한다.</p>
+      <table>
+        <thead><tr><th>항목</th><th>내용</th></tr></thead>
+        <tbody>
+          <tr><td>운항 환경</td><td>개방 해역 자율 운항</td></tr>
+          <tr><td>제어 방식</td><td>원격 RC 제어 가능</td></tr>
+          <tr><td>통신 구조</td><td>Master PC와 Wi-Fi 기반 무선통신</td></tr>
+          <tr><td>위치 추정</td><td>RTK GPS 기반</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">2단계 — 위험 요소 식별</div>
+      <p style="margin-bottom:14px;">운용 상황을 바탕으로 실해역에서 발생 가능한 위험 요소를 식별한다.</p>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-num">H1</div>
+          <div class="flow-body"><strong>항법 구역 이탈</strong> — GPS 위치 기반 수조 경계 이탈</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">H2</div>
+          <div class="flow-body"><strong>RC 통신 두절</strong> — 조종기-Arduino 간 RC 링크 손실</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">H3</div>
+          <div class="flow-body"><strong>원격 통신 두절</strong> — Master PC와의 Wi-Fi 연결 단절</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">H4</div>
+          <div class="flow-body"><strong>GPS 신호 불량</strong> — 위성 신호 열화로 인한 위치 추정 불가</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">H5</div>
+          <div class="flow-body"><strong>PWM 범위 초과</strong> — RL 정책의 비정상 출력으로 하드웨어 한계 초과</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">H6</div>
+          <div class="flow-body"><strong>IMU 데이터 불량</strong> — 자세 추정 센서 열화 또는 손실</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">3단계 — 위험도 평가 (S · E · C)</div>
+      <p style="margin-bottom:14px;">식별된 위험 요소에 대해 <strong>S(Severity)</strong>, <strong>E(Exposure)</strong>, <strong>C(Controllability)</strong> 세 축으로 위험도를 평가한다.</p>
+      <table>
+        <thead>
+          <tr><th>위험 요소</th><th>S (심각도)</th><th>E (노출빈도)</th><th>C (제어가능성)</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>경계이탈</td>
+            <td><span class="trigger-badge t-auto">S1</span> 낮음</td>
+            <td><span class="trigger-badge" style="background:var(--orange-bg);color:var(--orange);border:1px solid #fdba74;">E2</span> 중간</td>
+            <td><span class="trigger-badge" style="background:var(--orange-bg);color:var(--orange);border:1px solid #fdba74;">C2</span> 중간</td>
+          </tr>
+          <tr>
+            <td>RC 통신두절</td>
+            <td><span class="trigger-badge t-manual">S3</span> 높음</td>
+            <td><span class="trigger-badge t-auto">E1</span> 낮음</td>
+            <td><span class="trigger-badge t-manual">C3</span> 낮음</td>
+          </tr>
+          <tr>
+            <td>원격통신두절</td>
+            <td><span class="trigger-badge" style="background:var(--orange-bg);color:var(--orange);border:1px solid #fdba74;">S2</span> 중간</td>
+            <td><span class="trigger-badge t-manual">E3</span> 높음</td>
+            <td><span class="trigger-badge" style="background:var(--orange-bg);color:var(--orange);border:1px solid #fdba74;">C2</span> 중간</td>
+          </tr>
+          <tr>
+            <td>GPS 불량</td>
+            <td><span class="trigger-badge" style="background:var(--orange-bg);color:var(--orange);border:1px solid #fdba74;">S2</span> 중간</td>
+            <td><span class="trigger-badge t-manual">E3</span> 높음</td>
+            <td><span class="trigger-badge" style="background:var(--orange-bg);color:var(--orange);border:1px solid #fdba74;">C2</span> 중간</td>
+          </tr>
+          <tr>
+            <td>PWM 범위 초과</td>
+            <td><span class="trigger-badge t-manual">S3</span> 높음</td>
+            <td><span class="trigger-badge t-auto">E1</span> 낮음</td>
+            <td><span class="trigger-badge t-auto">C1</span> 높음</td>
+          </tr>
+          <tr>
+            <td>IMU 불량</td>
+            <td><span class="trigger-badge" style="background:var(--orange-bg);color:var(--orange);border:1px solid #fdba74;">S2</span> 중간</td>
+            <td><span class="trigger-badge t-auto">E1</span> 낮음</td>
+            <td><span class="trigger-badge t-auto">C1</span> 높음</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:12px; font-size:12.5px; color:var(--ink-3); line-height:1.8;">
+        <strong style="color:var(--ink-2);">S</strong>: 사고 발생 시 피해 심각도 &nbsp;|&nbsp;
+        <strong style="color:var(--ink-2);">E</strong>: 위험 상황에 노출되는 빈도 &nbsp;|&nbsp;
+        <strong style="color:var(--ink-2);">C</strong>: 위험 상황 발생 후 인간의 제어 가능성<br>
+        1 = 낮음(양호) &nbsp;&nbsp; 2 = 중간 &nbsp;&nbsp; 3 = 높음(불량)
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">도출 결과 — Kill Switch 트리거 확정</div>
+      <p style="margin-bottom:14px;">위험도 평가를 통해 Kill Switch 발동이 필요한 최종 트리거 조건과 임계값을 확정한다.</p>
+      <table>
+        <thead><tr><th>ID</th><th>트리거</th><th>Threshold</th></tr></thead>
+        <tbody>
+          <tr><td><strong>T1</strong></td><td>경계이탈</td><td>실험 구역 GPS 지점 설정 (Ray-casting 다각형)</td></tr>
+          <tr><td><strong>T2</strong></td><td>RC 통신두절</td><td>RC heartbeat 신호 수신 없음 지속 (1 s 이상)</td></tr>
+          <tr><td><strong>T3</strong></td><td>원격통신두절</td><td>Ping latency 500 ms 이상 또는 무응답</td></tr>
+          <tr><td><strong>T4</strong></td><td>GPS 불량</td><td>3회 연속 3 Hz 이하</td></tr>
+          <tr><td><strong>T5</strong></td><td>PWM 범위 초과</td><td>thruster ∉ [1500, 1730] 또는 servo ∉ [1100, 1900]</td></tr>
+          <tr><td><strong>T6</strong></td><td>IMU 불량</td><td>3회 연속 30 Hz 이하</td></tr>
+        </tbody>
+      </table>
+      <div class="callout callout-solution" style="margin-top:12px;">
+        <strong>결론:</strong> FuSa 방법론 적용으로 임의적 트리거 설정이 아닌 위험도 기반의 체계적 근거를 확보하였다. S·E·C 평가 결과가 각 트리거의 임계값과 수동/자동복구 분류의 설계 근거가 된다.
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 03 시스템 구조 ─── -->
+  <section class="section" id="architecture">
+    <div class="section-header">
+      <span class="section-num">03</span>
       <span class="section-title">시스템 구조 및 데이터 흐름</span>
     </div>
 
@@ -479,7 +611,7 @@
   <!-- ─── 03 핵심 구현 ─── -->
   <section class="section" id="implementation">
     <div class="section-header">
-      <span class="section-num">03</span>
+      <span class="section-num">04</span>
       <span class="section-title">핵심 구현 상세</span>
     </div>
 
@@ -598,7 +730,7 @@ x, _, z = <span class="fn">enu_to_tank</span>(e, n, <span class="num">0.0</span>
   <!-- ─── 04 검증 결과 ─── -->
   <section class="section" id="result">
     <div class="section-header">
-      <span class="section-num">04</span>
+      <span class="section-num">05</span>
       <span class="section-title">검증 결과</span>
     </div>
 
@@ -691,7 +823,7 @@ ros2 topic <span class="fn">echo</span> /tug1/PWM</pre>
   <!-- ─── 05 기술 스택 ─── -->
   <section class="section" id="stack">
     <div class="section-header">
-      <span class="section-num">05</span>
+      <span class="section-num">06</span>
       <span class="section-title">기술 스택 및 환경</span>
     </div>
 
